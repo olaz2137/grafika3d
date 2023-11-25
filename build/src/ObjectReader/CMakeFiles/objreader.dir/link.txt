@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libobjreader.a CMakeFiles/objreader.dir/obj_reader.cpp.o ../../CMakeFiles/glad.dir/src/3rdParty/glad/glad_4_1/glad/src/gl.c.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libobjreader.a

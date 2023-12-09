@@ -1,0 +1,1 @@
+Nawiasy są potrzebne, w przeciwnym razie rotacja nie zosatnie wykonana

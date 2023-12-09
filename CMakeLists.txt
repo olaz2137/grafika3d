@@ -90,6 +90,7 @@ find_package(OpenGL REQUIRED)
 
 link_libraries(OpenGL::GL glfw glm glad)
 add_subdirectory(src/Application)
+add_subdirectory(src/Tutorial)
 
 if (EXISTS ${SOURCE_DIR}/ObjectReader)
     add_subdirectory(src/ObjectReader)

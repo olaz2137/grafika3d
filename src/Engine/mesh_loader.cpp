@@ -2,8 +2,6 @@
 // Created by Piotr Białas on 04/11/2021.
 //
 
-
-
 #include "mesh_loader.h"
 
 #include <memory>
@@ -16,14 +14,14 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "ObjectReader/obj_reader.h"
-#include "XeEngine/ColorMaterial.h"
-#include "XeEngine/PhongMaterial.h"
-#include "XeEngine/Mesh.h"
+#include "Engine/Material.h"
+// #include "XeEngine/PhongMaterial.h"
+#include "Engine/Mesh.h"
 
 
 namespace {
     xe::ColorMaterial *make_color_material(const xe::mtl_material_t &mat, std::string mtl_dir);
-    xe::PhongMaterial *make_phong_material(const xe::mtl_material_t &mat, std::string mtl_dir);
+    // xe::PhongMaterial *make_phong_material(const xe::mtl_material_t &mat, std::string mtl_dir);
 }
 
 namespace xe {
@@ -110,9 +108,9 @@ namespace xe {
                     case 0:
                         material = make_color_material(mat, mtl_dir);
                         break;
-                    case 1:
-                        material = make_phong_material(mat, mtl_dir);
-                        break;
+                    // case 1:
+                    //     material = make_phong_material(mat, mtl_dir);
+                    //     break;
                 }
 
                 mesh->add_submesh(sm.start, sm.end, material, false);
@@ -146,23 +144,23 @@ namespace xe {
             return material;
         }
 
-        xe::PhongMaterial *make_phong_material(const xe::mtl_material_t &mat, std::string mtl_dir) {
+        // xe::PhongMaterial *make_phong_material(const xe::mtl_material_t &mat, std::string mtl_dir) {
 
-            glm::vec4 color;
-            for (int i = 0; i < 3; i++)
-                color[i] = mat.diffuse[i];
-            color[3] = 1.0;
-            spdlog::debug("Adding ColorMaterial {}", glm::to_string(color));
-            auto material = new xe::PhongMaterial(color);
-            if (!mat.diffuse_texname.empty()) {
-                auto texture = xe::create_texture(mtl_dir + "/" + mat.diffuse_texname);
-                spdlog::debug("Adding Texture {} {:1d}", mat.diffuse_texname, texture);
-                if (texture > 0) {
-                    material->set_texture(texture);
-                }
-            }
+        //     glm::vec4 color;
+        //     for (int i = 0; i < 3; i++)
+        //         color[i] = mat.diffuse[i];
+        //     color[3] = 1.0;
+        //     spdlog::debug("Adding ColorMaterial {}", glm::to_string(color));
+        //     auto material = new xe::PhongMaterial(color);
+        //     if (!mat.diffuse_texname.empty()) {
+        //         auto texture = xe::create_texture(mtl_dir + "/" + mat.diffuse_texname);
+        //         spdlog::debug("Adding Texture {} {:1d}", mat.diffuse_texname, texture);
+        //         if (texture > 0) {
+        //             material->set_texture(texture);
+        //         }
+        //     }
 
-            return material;
-        }
+        //     return material;
+        // }
 
     }

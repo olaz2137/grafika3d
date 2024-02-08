@@ -17,8 +17,10 @@
 #include "spdlog/spdlog.h"
 
 #include "Application/utils.h"
-#include "Engine/Material.h"
+#include "Engine/ColorMaterial.h"
+#include "Engine/PhongMaterial.h"
 #include "Engine/mesh_loader.h"
+#include "Engine/texture.h"
 
 void SimpleShapeApplication::init() {
     // A utility function that reads the shader sources, compiles them and creates the program object
@@ -33,6 +35,7 @@ void SimpleShapeApplication::init() {
     }
 
     xe::ColorMaterial::init();
+    xe::PhongMaterial::init();
 
     set_camera(new Camera);
     set_controler(new CameraControler(camera()));
@@ -40,14 +43,28 @@ void SimpleShapeApplication::init() {
     int w, h;
     std::tie(w, h) = frame_buffer_size();
     camera_->perspective(glm::pi<float>()/4.0, (float)w/h, 0.1f, 100.0f);
-    camera_->look_at(glm::vec3(2.0f, 0.0f, -0.5f), glm::vec3(0.0f, 0.0f, 0.5f), glm::vec3(0.0f, 0.0f, 1.0f));
+    camera_->look_at(glm::vec3(1.0f, 0.0f, -3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    add_submesh(xe::load_mesh_from_obj(std::string(ROOT_DIR) + "/Models/blue_marble.obj",
-                                     std::string(ROOT_DIR) + "/Models"));
+    add_submesh(xe::load_mesh_from_obj(std::string(ROOT_DIR) + "/Models/square.obj",
+        std::string(ROOT_DIR) + "/Models"));
+
+    auto light = new xe::PointLight(glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.5f); 
+    add_light(*light);
+    auto light2 = new xe::PointLight(glm::vec3(0.5f, 0.5f, 1.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f, 0.5f); 
+    add_light(*light2);
+    auto light3 = new xe::PointLight(glm::vec3(-0.5f, 0.5f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f, 0.5f); 
+    add_light(*light3);
+    add_ambient(glm::vec3(0.1f, 0.1f, 0.1f));
+
+    glGenBuffers(1, &u_lights_buffer_);
+    glBindBuffer(GL_UNIFORM_BUFFER, u_lights_buffer_);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3) + sizeof(GLuint) + sizeof(xe::PointLight)*p_lights_.size(), nullptr, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 2, u_lights_buffer_);
 
     glGenBuffers(1, &u_pvm_buffer_);
     OGL_CALL(glBindBuffer(GL_UNIFORM_BUFFER, u_pvm_buffer_));
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4)+sizeof(glm::mat3), nullptr, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, u_pvm_buffer_);
 
@@ -70,8 +87,29 @@ void SimpleShapeApplication::init() {
 void SimpleShapeApplication::frame() {
     // Binding the VAO will setup all the required vertex buffers.
     auto PVM = camera_->projection() * camera_->view() * M_;
+    auto VM = camera_->view() * M_;
+    auto R = glm::mat3(VM);
+    auto N = glm::mat3(glm::cross(R[1], R[2]), glm::cross(R[2], R[0]), glm::cross(R[0], R[1]));
     glBindBuffer(GL_UNIFORM_BUFFER, u_pvm_buffer_);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &PVM[0]);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), &VM[0]);
+    glBufferSubData(GL_UNIFORM_BUFFER, 2*sizeof(glm::mat4), sizeof(glm::mat3), &N[0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    GLuint n_p_lights = p_lights_.size();
+
+    glBindBuffer(GL_UNIFORM_BUFFER, u_lights_buffer_);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), &ambient_);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), sizeof(GLuint), &n_p_lights);
+
+    for (GLuint i = 0; i < n_p_lights; i++) {
+        xe::PointLight& light = p_lights_[i];
+        light.position_in_vs = glm::vec3(VM * glm::vec4(light.position_in_ws, 1.0f));
+
+        auto lightOffset = sizeof(glm::vec3) + sizeof(GLuint) + i * sizeof(xe::PointLight);
+        glBufferSubData(GL_UNIFORM_BUFFER, lightOffset, sizeof(xe::PointLight), &light);
+    }
+
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     glEnable(GL_DEPTH_TEST);

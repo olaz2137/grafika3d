@@ -17,7 +17,7 @@
 #include "spdlog/spdlog.h"
 
 #include "Application/utils.h"
-#include "Engine/Material.h"
+#include "Engine/ColorMaterial.h"
 #include "Engine/mesh_loader.h"
 
 void SimpleShapeApplication::init() {

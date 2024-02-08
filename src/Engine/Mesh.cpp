@@ -7,7 +7,7 @@
 
 #include "Mesh.h"
 
-#include "Material.h"
+#include "ColorMaterial.h"
 
 
 void xe::Mesh::draw() const {

@@ -10,6 +10,7 @@
 #include "Application/utils.h"
 
 #include "Engine/Mesh.h"
+#include "Engine/Light.h"
 
 #include "camera.h"
 #include "camera_controler.h"
@@ -55,14 +56,26 @@ public:
         meshes_.push_back(mesh);
     }
 
+    void add_light(const xe::PointLight &p_light) {
+        p_lights_.push_back(p_light); 
+    }
+
+    void add_ambient(glm::vec3 ambient) {
+        ambient_ = ambient;
+    }
+
 private:
     glm::mat4 M_;
 
     GLuint u_pvm_buffer_;
+    GLuint u_lights_buffer_;
 
     Camera *camera_;
 
     CameraControler *controler_;
 
     std::vector<Mesh*> meshes_;
+
+    glm::vec3 ambient_;
+    std::vector<xe::PointLight> p_lights_;
 };
